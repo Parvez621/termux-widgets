@@ -1,0 +1,16 @@
+# Termux / local files
+*.log
+*.tmp
+
+# Authentication material - NEVER commit cookies
+*.cookies
+*.cookie
+cookies.txt
+*-cookies.txt
+instagram-cookies.txt
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
