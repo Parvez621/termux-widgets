@@ -1,16 +1,35 @@
 #!/data/data/com.termux/files/usr/bin/bash
-set -euo pipefail
-source "$HOME/.config/termux-widgets/common.sh" 2>/dev/null || true
 
-WIDGET_DOWNLOAD_DIR="${WIDGET_DOWNLOAD_DIR:-$HOME/storage/downloads/Termux-Widgets}"
-mkdir -p "$WIDGET_DOWNLOAD_DIR/Audio"
-command -v yt-dlp >/dev/null 2>&1 || { echo "yt-dlp is not installed."; exit 1; }
-command -v ffmpeg >/dev/null 2>&1 || { echo "ffmpeg is not installed."; exit 1; }
+set -euo pipefail
+
+source "$HOME/.config/termux-widgets/common.sh"
+
+ensure_storage
+ensure_command yt-dlp
+ensure_command ffmpeg
 
 url="$(termux-clipboard-get 2>/dev/null || true)"
-[ -n "$url" ] || read -rp "Media URL: " url
 
-yt-dlp --no-playlist -x --audio-format best \
-    -o "$WIDGET_DOWNLOAD_DIR/Audio/%(title).180B [%(id)s].%(ext)s" "$url"
+if [ -z "$url" ]; then
+    toast "Copy a media URL first"
+    exit 1
+fi
 
-echo "Saved to $WIDGET_DOWNLOAD_DIR/Audio"
+output_dir="$WIDGET_DOWNLOAD_DIR/Audio"
+
+mkdir -p "$output_dir"
+
+if yt-dlp \
+    --no-playlist \
+    -x \
+    --audio-format mp3 \
+    --audio-quality 0 \
+    -o "$output_dir/%(title).180B [%(id)s].%(ext)s" \
+    "$url"; then
+
+    toast "Audio download complete"
+    notify "Audio downloaded"
+else
+    toast "Audio download failed"
+    exit 1
+fi
